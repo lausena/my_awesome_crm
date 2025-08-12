@@ -22,7 +22,7 @@ Follow this sequence to ensure comprehensive coverage of all development aspects
 ### 1. **Discovery & Planning Phase**
 ```bash
 # Define project scope and requirements
-claude --agent product-manager "Define requirements for [feature/project name]. Include user stories, acceptance criteria, and success metrics."
+claude --agent product-manager "Define requirements for the CRM project (my_awesome_crm). Include user stories, acceptance criteria, and success metrics."
 
 # Review and validate requirements
 claude --agent reviewer "Review the product requirements document. Validate completeness, feasibility, and business alignment."
@@ -126,3 +126,33 @@ claude --agent reviewer "Conduct final review of the complete solution. Validate
 5. Iterate based on feedback and changing requirements
 
 This agent-driven approach ensures that domain expertise is applied at every stage of development, resulting in higher quality, more maintainable, and better-aligned software solutions.
+
+## Running Agents in Parallel
+
+For improved efficiency, certain agents can be run in parallel when their tasks are independent:
+
+### Parallel Execution Examples
+
+**Independent Implementation Tasks**:
+```bash
+# Run backend and frontend development simultaneously
+claude --agent backend-engineer "Implement user authentication API endpoints" &
+claude --agent frontend-engineer "Build login and registration UI components" &
+wait
+```
+
+**Concurrent Review Tasks**:
+```bash
+# Review different aspects of the system in parallel
+claude --agent reviewer "Review security implementation and access controls" &
+claude --agent reviewer "Review performance optimizations and scalability" &
+wait
+```
+
+### Best Practices for Parallel Execution
+
+- **Independent Work**: Only parallelize agents when their tasks don't depend on each other's output
+- **Resource Coordination**: Avoid parallel agents modifying the same files simultaneously
+- **Synchronization Points**: Use `wait` command to ensure parallel tasks complete before proceeding
+- **Clear Scope**: Define non-overlapping responsibilities for each parallel agent
+- **Sequential Dependencies**: Keep dependent tasks sequential (e.g., architecture → implementation)
