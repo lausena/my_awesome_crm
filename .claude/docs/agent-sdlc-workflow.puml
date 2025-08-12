@@ -1,0 +1,122 @@
+@startuml
+!theme materia
+title CRM Agent-Driven Software Development Lifecycle
+start
+
+:Feature Request / Project Initiated;
+
+partition "Discovery & Planning Phase" {
+    :Product Manager Agent: Define Requirements;
+    note right
+        • User stories & acceptance criteria
+        • Success metrics & KPIs
+        • Business case & ROI analysis
+        • Stakeholder requirements
+    end note
+    
+    :Reviewer Agent: Validate Requirements;
+    note right
+        • Completeness assessment
+        • Business alignment check
+        • Risk identification
+        • Stakeholder validation
+    end note
+    
+    if (Requirements Approved?) then (no)
+        :Iterate Requirements;
+        :Product Manager Agent: Refine Requirements;
+    else (yes)
+    endif
+}
+
+partition "Architecture & Design Phase" {
+    :Software Architect Agent: Design System Architecture;
+    note right
+        • Technology stack selection
+        • System design patterns
+        • Data models & relationships
+        • Integration architecture
+        • Scalability planning
+    end note
+    
+    :Reviewer Agent: Validate Architecture;
+    note right
+        • Technical feasibility
+        • Scalability assessment
+        • Security review
+        • Integration complexity
+    end note
+    
+    if (Architecture Approved?) then (no)
+        :Iterate Architecture;
+        :Software Architect Agent: Refine Design;
+    else (yes)
+    endif
+}
+
+partition "Implementation Phase" {
+    fork
+        :Backend Engineer Agent: Implement Backend;
+        note right
+            • API endpoints
+            • Database schema
+            • Business logic
+            • Third-party integrations
+            • Security implementation
+        end note
+    fork again
+        :Frontend Engineer Agent: Implement Frontend;
+        note right
+            • UI components
+            • User workflows
+            • Real-time updates
+            • Data visualizations
+            • Performance optimization
+        end note
+    end fork
+    
+    :Reviewer Agent: Code Quality Review;
+    note right
+        • Code quality assessment
+        • Security validation
+        • Performance review
+        • Requirement fulfillment
+    end note
+    
+    if (Implementation Approved?) then (no)
+        :Iterate Implementation;
+        :Fix Issues;
+    else (yes)
+    endif
+}
+
+partition "Deployment & Operations Phase" {
+    :Deployment Engineer Agent: Setup Infrastructure;
+    note right
+        • CI/CD pipeline configuration
+        • Infrastructure provisioning
+        • Monitoring & alerting
+        • Security configuration
+        • Scaling policies
+    end note
+    
+    :Reviewer Agent: Final Validation;
+    note right
+        • Deployment readiness
+        • Operational procedures
+        • Security compliance
+        • Monitoring coverage
+    end note
+    
+    if (Ready for Production?) then (no)
+        :Address Issues;
+        :Deployment Engineer Agent: Fix Issues;
+    else (yes)
+    endif
+    
+    :Deploy to Production;
+    :Monitor & Maintain;
+}
+
+stop
+@enduml
