@@ -1,0 +1,199 @@
+@startuml data-flow
+!theme aws-orange
+title My Awesome CRM - Data Flow Architecture
+
+!define DATASTORE database
+!define PROCESS component
+!define FLOW ->>
+
+rectangle "Data Sources" as sources {
+    DATASTORE "User Interactions\n(Web/Mobile)" as userdata
+    DATASTORE "External Systems\n(Email, Calendar, etc.)" as external
+    DATASTORE "API Integrations\n(HubSpot, Marketo, etc.)" as integrations
+    DATASTORE "File Uploads\n(Documents, Imports)" as files
+}
+
+rectangle "Data Ingestion Layer" as ingestion {
+    PROCESS "API Gateway\n(Rate Limiting)" as gateway
+    PROCESS "Webhook Handlers\n(Real-time Events)" as webhooks
+    PROCESS "Message Queue\n(RabbitMQ)" as queue
+    PROCESS "Batch Processors\n(ETL Jobs)" as batch
+}
+
+rectangle "Data Processing Layer" as processing {
+    PROCESS "Data Validation\n(Schema Validation)" as validation
+    PROCESS "Data Enrichment\n(External APIs)" as enrichment
+    PROCESS "Data Transformation\n(Format Conversion)" as transformation
+    PROCESS "Deduplication\n(Duplicate Detection)" as dedup
+    PROCESS "Data Classification\n(PII Detection)" as classification
+}
+
+rectangle "Core Data Stores" as corestores {
+    DATASTORE "Contact Database\n(PostgreSQL)" as contacts
+    DATASTORE "Lead Database\n(PostgreSQL)" as leads
+    DATASTORE "Opportunity Database\n(PostgreSQL)" as opportunities
+    DATASTORE "Activity Database\n(PostgreSQL)" as activities
+    DATASTORE "Communication Database\n(PostgreSQL)" as communications
+    DATASTORE "User Database\n(PostgreSQL)" as users
+}
+
+rectangle "Performance Layer" as performance {
+    DATASTORE "Application Cache\n(Redis)" as cache
+    DATASTORE "Session Store\n(Redis)" as sessions
+    DATASTORE "Search Index\n(Elasticsearch)" as search
+    DATASTORE "Analytics Store\n(ClickHouse)" as analytics
+}
+
+rectangle "Data Services" as services {
+    PROCESS "Contact Service\n(CRUD Operations)" as contactsvc
+    PROCESS "Lead Service\n(Scoring, Routing)" as leadsvc
+    PROCESS "Opportunity Service\n(Pipeline, Forecasting)" as oppsvc
+    PROCESS "Activity Service\n(Tasks, Events)" as activitysvc
+    PROCESS "Communication Service\n(Email, Calls)" as commsvc
+    PROCESS "Search Service\n(Full-text Search)" as searchsvc
+}
+
+rectangle "Analytics Pipeline" as analyticsflow {
+    PROCESS "Real-time Stream\n(Apache Kafka)" as stream
+    PROCESS "Data Aggregation\n(Metrics Calculation)" as aggregation
+    PROCESS "ML Feature Engineering\n(Feature Store)" as features
+    PROCESS "Report Generation\n(Scheduled Jobs)" as reports
+}
+
+rectangle "Data Output" as output {
+    PROCESS "REST APIs\n(External Access)" as apis
+    PROCESS "GraphQL\n(Complex Queries)" as graphql
+    PROCESS "Real-time Updates\n(WebSockets)" as websockets
+    PROCESS "Batch Exports\n(CSV, Excel)" as exports
+    PROCESS "Integration Webhooks\n(External Systems)" as outbound
+}
+
+rectangle "Data Governance" as governance {
+    PROCESS "Audit Logging\n(All Data Changes)" as audit
+    PROCESS "Data Lineage\n(Source Tracking)" as lineage
+    PROCESS "Compliance Engine\n(GDPR, CCPA)" as compliance
+    PROCESS "Data Retention\n(Lifecycle Management)" as retention
+    PROCESS "Backup & Recovery\n(Point-in-time)" as backup
+}
+
+' Data ingestion flow
+userdata FLOW gateway
+external FLOW webhooks
+integrations FLOW webhooks
+files FLOW batch
+
+gateway FLOW queue
+webhooks FLOW queue
+batch FLOW queue
+
+' Data processing flow
+queue FLOW validation
+validation FLOW enrichment
+enrichment FLOW transformation
+transformation FLOW dedup
+dedup FLOW classification
+
+' Data storage flow
+classification FLOW contacts
+classification FLOW leads
+classification FLOW opportunities
+classification FLOW activities
+classification FLOW communications
+classification FLOW users
+
+' Performance optimization flow
+contacts FLOW cache
+leads FLOW cache
+opportunities FLOW cache
+
+contacts FLOW search
+leads FLOW search
+opportunities FLOW search
+communications FLOW search
+
+activities FLOW analytics
+communications FLOW analytics
+opportunities FLOW analytics
+
+' Service layer access
+cache FLOW contactsvc
+contacts FLOW contactsvc
+leads FLOW leadsvc
+opportunities FLOW oppsvc
+activities FLOW activitysvc
+communications FLOW commsvc
+search FLOW searchsvc
+
+' Analytics pipeline
+activities FLOW stream
+communications FLOW stream
+opportunities FLOW stream
+
+stream FLOW aggregation
+aggregation FLOW features
+stream FLOW analytics
+analytics FLOW reports
+
+' Data output flow
+contactsvc FLOW apis
+leadsvc FLOW apis
+oppsvc FLOW apis
+searchsvc FLOW graphql
+stream FLOW websockets
+reports FLOW exports
+analytics FLOW outbound
+
+' Governance flow
+contactsvc FLOW audit
+leadsvc FLOW audit
+oppsvc FLOW audit
+
+contacts FLOW lineage
+leads FLOW lineage
+opportunities FLOW lineage
+
+audit FLOW compliance
+contacts FLOW retention
+contacts FLOW backup
+
+note right of sources
+  **Data Sources:**
+  • User interactions (clicks, form submissions)
+  • Email sync (Gmail, Outlook)
+  • Calendar events (meetings, tasks)
+  • API integrations (marketing automation)
+  • File imports (CSV, Excel)
+  • Mobile app usage data
+end note
+
+note left of processing
+  **Data Quality:**
+  • Schema validation
+  • Business rule validation
+  • Data type conversion
+  • Null value handling
+  • Format standardization
+  • Duplicate detection (AI-powered)
+end note
+
+note bottom of performance
+  **Performance Optimization:**
+  • Multi-level caching strategy
+  • Read replicas for scaling
+  • Partitioning for large tables
+  • Indexing optimization
+  • Query result caching
+  • CDN for static assets
+end note
+
+note top of governance
+  **Data Governance:**
+  • Complete audit trail
+  • Data lineage tracking
+  • GDPR right to erasure
+  • Data retention policies
+  • Regular backup validation
+  • Disaster recovery procedures
+end note
+
+@enduml

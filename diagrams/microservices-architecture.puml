@@ -1,0 +1,155 @@
+@startuml microservices-architecture
+!theme aws-orange
+title My Awesome CRM - Microservices Architecture
+
+!define SERVICE component
+
+rectangle "API Gateway" as gateway {
+    SERVICE "Kong Gateway" as kong
+    SERVICE "Rate Limiter" as limiter
+    SERVICE "Auth Middleware" as auth
+}
+
+rectangle "Core Domain Services" as core {
+    package "Contact Management" {
+        SERVICE "Contact Service" as contact
+        database "Contact DB" as contactdb
+    }
+    
+    package "Lead Management" {
+        SERVICE "Lead Service" as lead
+        SERVICE "Lead Scoring" as scoring
+        database "Lead DB" as leaddb
+    }
+    
+    package "Opportunity Management" {
+        SERVICE "Opportunity Service" as opportunity
+        SERVICE "Pipeline Service" as pipeline
+        SERVICE "Forecasting Service" as forecast
+        database "Opportunity DB" as oppdb
+    }
+    
+    package "Activity Management" {
+        SERVICE "Activity Service" as activity
+        SERVICE "Task Service" as task
+        SERVICE "Calendar Service" as calendar
+        database "Activity DB" as activitydb
+    }
+}
+
+rectangle "Supporting Services" as supporting {
+    package "Communication Hub" {
+        SERVICE "Email Service" as email
+        SERVICE "Call Service" as call
+        SERVICE "Meeting Service" as meeting
+        database "Communication DB" as commdb
+    }
+    
+    package "Analytics & Reporting" {
+        SERVICE "Analytics Service" as analytics
+        SERVICE "Report Builder" as reports
+        SERVICE "Dashboard Service" as dashboard
+        database "Analytics DB" as analyticsdb
+    }
+    
+    package "AI/ML Pipeline" {
+        SERVICE "ML Training Service" as training
+        SERVICE "Model Inference" as inference
+        SERVICE "Feature Store" as features
+        database "ML Models" as models
+    }
+}
+
+rectangle "Infrastructure Services" as infra {
+    SERVICE "User Management" as users
+    SERVICE "Tenant Management" as tenants
+    SERVICE "Permission Service" as permissions
+    SERVICE "Notification Service" as notifications
+    SERVICE "Integration Service" as integrations
+    SERVICE "File Storage Service" as files
+    SERVICE "Audit Service" as audit
+    SERVICE "Config Service" as config
+}
+
+rectangle "Data & Messaging" as data {
+    database "PostgreSQL\nCluster" as postgres
+    database "Redis\nCluster" as redis
+    database "Elasticsearch\nCluster" as elastic
+    queue "RabbitMQ\nCluster" as rabbitmq
+    storage "Object Storage\n(S3/MinIO)" as storage
+}
+
+' Gateway connections
+kong --> contact
+kong --> lead  
+kong --> opportunity
+kong --> activity
+kong --> email
+kong --> analytics
+kong --> training
+kong --> users
+kong --> integrations
+
+' Service-to-service communication via message queue
+contact --> rabbitmq
+lead --> rabbitmq
+opportunity --> rabbitmq
+activity --> rabbitmq
+email --> rabbitmq
+analytics --> rabbitmq
+training --> rabbitmq
+
+' Database connections
+contact --> contactdb
+lead --> leaddb
+opportunity --> oppdb
+activity --> activitydb
+email --> commdb
+analytics --> analyticsdb
+training --> models
+
+contactdb --> postgres
+leaddb --> postgres
+oppdb --> postgres
+activitydb --> postgres
+commdb --> postgres
+analyticsdb --> postgres
+
+' Cache connections
+contact --> redis
+lead --> redis
+opportunity --> redis
+activity --> redis
+
+' Search connections
+analytics --> elastic
+email --> elastic
+
+' File storage connections
+email --> storage
+files --> storage
+
+' Cross-service dependencies
+scoring --> contact : "Contact Data"
+pipeline --> opportunity : "Deal Data"
+forecast --> opportunity : "Historical Data"
+inference --> features : "Feature Data"
+reports --> analyticsdb : "Aggregated Data"
+
+note right of core
+  **Service Communication:**
+  • Async via RabbitMQ for data consistency
+  • Sync via REST/gRPC for real-time queries
+  • Event sourcing for audit trails
+  • Circuit breakers for fault tolerance
+end note
+
+note left of data
+  **Data Strategy:**
+  • Tenant-based sharding
+  • Read replicas for scale
+  • CQRS for analytics
+  • Event store for audit
+end note
+
+@enduml

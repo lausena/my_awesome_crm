@@ -1,0 +1,203 @@
+@startuml ai-ml-pipeline
+!theme aws-orange
+title My Awesome CRM - AI/ML Pipeline Architecture
+
+!define MLCOMPONENT component
+!define DATASTORE database
+
+rectangle "Data Sources" as sources {
+    DATASTORE "CRM Database\n(PostgreSQL)" as crmdb
+    DATASTORE "Activity Logs\n(Elasticsearch)" as activitylogs
+    DATASTORE "Communication Data\n(Email, Calls)" as commdata
+    DATASTORE "External Data\n(Enrichment APIs)" as extdata
+}
+
+rectangle "Data Pipeline" as pipeline {
+    
+    rectangle "Data Ingestion" as ingestion {
+        MLCOMPONENT "Change Data Capture\n(Debezium)" as cdc
+        MLCOMPONENT "Streaming Processor\n(Apache Kafka)" as kafka
+        MLCOMPONENT "Batch Processor\n(Apache Spark)" as spark
+    }
+    
+    rectangle "Data Processing" as processing {
+        MLCOMPONENT "Data Cleansing\n(Python/Pandas)" as cleansing
+        MLCOMPONENT "Feature Engineering\n(scikit-learn)" as features
+        MLCOMPONENT "Data Validation\n(Great Expectations)" as validation
+        MLCOMPONENT "Feature Store\n(Feast)" as featurestore
+    }
+}
+
+rectangle "ML Development" as mldev {
+    
+    rectangle "Model Development" as development {
+        MLCOMPONENT "Jupyter Notebooks\n(Experimentation)" as notebooks
+        MLCOMPONENT "MLflow\n(Experiment Tracking)" as mlflow
+        MLCOMPONENT "Model Registry\n(Versioning)" as registry
+        MLCOMPONENT "Model Validation\n(Unit Tests)" as modelval
+    }
+    
+    rectangle "Training Pipeline" as training {
+        MLCOMPONENT "AutoML\n(Hyperparameter Tuning)" as automl
+        MLCOMPONENT "Distributed Training\n(Ray/Horovod)" as distributed
+        MLCOMPONENT "Model Selection\n(Cross Validation)" as selection
+        MLCOMPONENT "A/B Testing Framework" as abtesting
+    }
+}
+
+rectangle "ML Models" as models {
+    
+    rectangle "Lead Scoring Models" as leadmodels {
+        MLCOMPONENT "XGBoost Classifier\n(>85% accuracy)" as xgboost
+        MLCOMPONENT "Neural Network\n(Deep Learning)" as neuralnet
+        MLCOMPONENT "Ensemble Model\n(Voting Classifier)" as ensemble
+    }
+    
+    rectangle "Sales Forecasting" as forecasting {
+        MLCOMPONENT "Time Series Model\n(ARIMA/Prophet)" as timeseries
+        MLCOMPONENT "Regression Models\n(Linear/Random Forest)" as regression
+        MLCOMPONENT "LSTM Network\n(Sequence Prediction)" as lstm
+    }
+    
+    rectangle "Customer Analytics" as customer {
+        MLCOMPONENT "Churn Prediction\n(Logistic Regression)" as churn
+        MLCOMPONENT "Customer Segmentation\n(K-Means Clustering)" as segmentation
+        MLCOMPONENT "Lifetime Value\n(Regression)" as ltv
+    }
+}
+
+rectangle "ML Serving" as serving {
+    
+    rectangle "Model Deployment" as deployment {
+        MLCOMPONENT "Model Server\n(TensorFlow Serving)" as modelserver
+        MLCOMPONENT "API Gateway\n(ML Inference)" as mlapi
+        MLCOMPONENT "Batch Inference\n(Scheduled Jobs)" as batchinf
+        MLCOMPONENT "Real-time Inference\n(<100ms latency)" as realtime
+    }
+    
+    rectangle "Model Monitoring" as mlmonitoring {
+        MLCOMPONENT "Data Drift Detection\n(Evidently)" as drift
+        MLCOMPONENT "Model Performance\n(Accuracy Tracking)" as performance
+        MLCOMPONENT "Feature Monitoring\n(Distribution Tracking)" as featuremon
+        MLCOMPONENT "Alerting System\n(Model Degradation)" as alerts
+    }
+}
+
+rectangle "ML Operations" as mlops {
+    MLCOMPONENT "CI/CD for ML\n(GitHub Actions)" as mlcicd
+    MLCOMPONENT "Model Deployment\n(Kubernetes)" as k8sdeploy
+    MLCOMPONENT "Container Registry\n(ML Models)" as mlregistry
+    MLCOMPONENT "Configuration Management\n(Model Config)" as config
+}
+
+rectangle "Applications" as apps {
+    MLCOMPONENT "CRM Services\n(Lead Scoring API)" as crmservices
+    MLCOMPONENT "Analytics Dashboard\n(Predictions)" as dashboard
+    MLCOMPONENT "Mobile App\n(AI Insights)" as mobile
+    MLCOMPONENT "Email Campaign\n(ML Targeting)" as email
+}
+
+' Data flow
+crmdb --> cdc
+activitylogs --> kafka
+commdata --> kafka
+extdata --> spark
+
+cdc --> kafka
+kafka --> cleansing
+spark --> cleansing
+
+cleansing --> features
+features --> validation
+validation --> featurestore
+
+featurestore --> notebooks
+notebooks --> mlflow
+mlflow --> registry
+registry --> modelval
+
+featurestore --> automl
+automl --> distributed
+distributed --> selection
+selection --> abtesting
+
+' Model training
+featurestore --> xgboost
+featurestore --> neuralnet
+featurestore --> timeseries
+featurestore --> churn
+
+xgboost --> ensemble
+neuralnet --> ensemble
+ensemble --> registry
+
+timeseries --> registry
+regression --> registry
+lstm --> registry
+churn --> registry
+segmentation --> registry
+ltv --> registry
+
+' Model deployment
+registry --> modelserver
+modelserver --> mlapi
+mlapi --> realtime
+registry --> batchinf
+
+' Model serving to applications
+realtime --> crmservices : "Lead Scores"
+realtime --> dashboard : "Predictions"
+realtime --> mobile : "AI Insights"
+batchinf --> email : "Targeting"
+
+' Monitoring feedback loop
+realtime --> drift
+realtime --> performance
+featurestore --> featuremon
+performance --> alerts
+drift --> alerts
+alerts --> mlflow : "Retrain Trigger"
+
+' MLOps flow
+mlcicd --> mlregistry
+mlregistry --> k8sdeploy
+k8sdeploy --> modelserver
+config --> modelserver
+
+note right of leadmodels
+  **Lead Scoring Features:**
+  • Company demographics
+  • Engagement behavior
+  • Website interactions
+  • Email responses
+  • Social media activity
+  • Historical conversion data
+end note
+
+note left of forecasting
+  **Forecasting Models:**
+  • Deal velocity analysis
+  • Pipeline progression
+  • Seasonal adjustments
+  • External factors
+  • Confidence intervals
+end note
+
+note bottom of serving
+  **Performance Targets:**
+  • Real-time: <100ms latency
+  • Batch: Process 1M records/hour
+  • Accuracy: >85% for lead scoring
+  • Availability: 99.9% uptime
+end note
+
+note top of mlops
+  **MLOps Practices:**
+  • Automated model validation
+  • Continuous integration/deployment
+  • Model versioning and rollback
+  • A/B testing framework
+  • Performance monitoring
+end note
+
+@enduml

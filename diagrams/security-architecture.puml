@@ -1,0 +1,157 @@
+@startuml security-architecture
+!theme aws-orange
+title My Awesome CRM - Security Architecture
+
+!define SECURITY component
+
+' External threats and protection
+cloud "Internet" as internet {
+    actor "Users" as users
+    actor "Attackers" as threats
+}
+
+rectangle "Security Perimeter" as perimeter {
+    
+    rectangle "Edge Security" as edge {
+        SECURITY "WAF\n(Web Application Firewall)" as waf
+        SECURITY "DDoS Protection" as ddos
+        SECURITY "CDN\n(Content Delivery Network)" as cdn
+    }
+    
+    rectangle "Network Security" as network {
+        SECURITY "Load Balancer\nSSL Termination" as lb
+        SECURITY "API Gateway\nRate Limiting" as gateway
+        SECURITY "VPC\nNetwork Isolation" as vpc
+    }
+    
+    rectangle "Application Security" as application {
+        
+        rectangle "Authentication & Authorization" as auth {
+            SECURITY "Identity Provider\n(OAuth 2.0 / SAML)" as idp
+            SECURITY "JWT Token Service" as jwt
+            SECURITY "MFA Service" as mfa
+            SECURITY "Session Management" as session
+        }
+        
+        rectangle "Access Control" as access {
+            SECURITY "RBAC Engine\n(Role-Based Access)" as rbac
+            SECURITY "ABAC Engine\n(Attribute-Based Access)" as abac
+            SECURITY "Permission Cache" as permissions
+            SECURITY "Tenant Isolation" as isolation
+        }
+        
+        rectangle "Data Protection" as dataprotection {
+            SECURITY "Encryption Service\n(AES-256-GCM)" as encryption
+            SECURITY "Key Management\n(HSM/AWS KMS)" as keymanagement
+            SECURITY "Data Classification" as classification
+            SECURITY "PII Detection" as pii
+        }
+    }
+    
+    rectangle "Infrastructure Security" as infrasec {
+        SECURITY "Container Security\n(Image Scanning)" as containers
+        SECURITY "Runtime Security\n(Falco)" as runtime
+        SECURITY "Secrets Management\n(Vault/K8s Secrets)" as secrets
+        SECURITY "Network Policies\n(Kubernetes)" as netpol
+    }
+    
+    rectangle "Monitoring & Compliance" as monitoring {
+        SECURITY "SIEM\n(Security Information & Event Management)" as siem
+        SECURITY "Vulnerability Scanning" as vuln
+        SECURITY "Compliance Engine\n(SOC 2, GDPR, HIPAA)" as compliance
+        SECURITY "Audit Logging" as audit
+    }
+}
+
+rectangle "Core Services" as core {
+    component "Contact Service" as contact
+    component "Lead Service" as lead
+    component "Opportunity Service" as opportunity
+    component "User Management" as users
+}
+
+rectangle "Data Layer" as data {
+    database "Encrypted Database\n(PostgreSQL + TDE)" as db
+    database "Encrypted Cache\n(Redis + TLS)" as cache
+    storage "Encrypted Storage\n(S3 + SSE)" as storage
+}
+
+' Traffic flow
+users --> cdn
+threats -[#red]-> ddos : "Blocked"
+cdn --> waf
+waf --> lb
+lb --> gateway
+gateway --> idp
+idp --> jwt
+jwt --> rbac
+rbac --> isolation
+
+' Authentication flow
+users --> mfa : "Multi-Factor Auth"
+mfa --> session : "Session Creation"
+session --> permissions : "Permission Loading"
+
+' Service access control
+isolation --> contact
+isolation --> lead
+isolation --> opportunity
+isolation --> users
+
+' Data protection
+contact --> encryption
+lead --> encryption
+opportunity --> encryption
+users --> encryption
+
+encryption --> keymanagement
+keymanagement --> db
+keymanagement --> cache
+keymanagement --> storage
+
+' Security monitoring
+contact --> audit
+lead --> audit
+opportunity --> audit
+users --> audit
+audit --> siem
+
+' Compliance monitoring
+siem --> compliance
+vuln --> compliance
+classification --> compliance
+pii --> compliance
+
+' Infrastructure security
+containers --> runtime
+runtime --> secrets
+secrets --> netpol
+
+note right of auth
+  **Authentication Methods:**
+  • OAuth 2.0 / OpenID Connect
+  • SAML 2.0 for enterprise SSO
+  • Multi-factor authentication (TOTP, SMS, Email)
+  • Passwordless authentication options
+  • Session timeout and concurrent session limits
+end note
+
+note left of dataprotection
+  **Data Protection:**
+  • Encryption at rest (AES-256-GCM)
+  • Encryption in transit (TLS 1.3)
+  • Field-level encryption for PII
+  • Data masking for non-production
+  • Secure key rotation policies
+end note
+
+note bottom of monitoring
+  **Security Monitoring:**
+  • Real-time threat detection
+  • Automated incident response
+  • Compliance reporting automation
+  • Security metrics and dashboards
+  • Regular penetration testing
+end note
+
+@enduml

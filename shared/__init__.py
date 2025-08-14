@@ -1,0 +1,1 @@
+# Shared utilities for My Awesome CRM services

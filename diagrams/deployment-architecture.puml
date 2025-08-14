@@ -1,0 +1,153 @@
+@startuml deployment-architecture
+!theme aws-orange
+title My Awesome CRM - Deployment Architecture
+
+!define CLUSTER rectangle
+!define NODE component
+
+CLUSTER "Global DNS & CDN" as global {
+    NODE "Route 53\n(DNS)" as dns
+    NODE "CloudFront\n(CDN)" as cdn
+}
+
+CLUSTER "US East Region (Primary)" as useast {
+    
+    CLUSTER "Production Cluster" as prod {
+        NODE "EKS Control Plane" as prodcontrol
+        
+        CLUSTER "Worker Nodes" as prodnodes {
+            NODE "Web Tier\n(3 nodes)" as prodweb
+            NODE "API Tier\n(5 nodes)" as prodapi
+            NODE "Services Tier\n(10 nodes)" as prodservices
+            NODE "AI/ML Tier\n(3 nodes)" as prodml
+        }
+        
+        CLUSTER "Data Tier" as proddata {
+            NODE "PostgreSQL Primary\n(RDS Multi-AZ)" as proddb
+            NODE "PostgreSQL Replicas\n(3 read replicas)" as prodreplicas
+            NODE "Redis Cluster\n(3 master, 3 replica)" as prodredis
+            NODE "Elasticsearch\n(3 master, 6 data)" as prodelastic
+        }
+    }
+    
+    CLUSTER "Staging Cluster" as staging {
+        NODE "Staging Services\n(scaled down)" as stagingservices
+        NODE "Staging Database\n(smaller instance)" as stagingdb
+    }
+    
+    CLUSTER "Development Cluster" as dev {
+        NODE "Dev Services\n(single instance)" as devservices
+        NODE "Dev Database\n(shared)" as devdb
+    }
+}
+
+CLUSTER "EU West Region (Secondary)" as euwest {
+    
+    CLUSTER "EU Production" as euprod {
+        NODE "EKS Control Plane" as euprodcontrol
+        NODE "EU Services\n(5 nodes)" as euprodservices
+        NODE "EU Database\n(PostgreSQL)" as euproddb
+        NODE "EU Cache\n(Redis)" as euprodredis
+    }
+    
+    note right of euprod
+      **EU Deployment:**
+      • GDPR compliance
+      • Data residency
+      • Disaster recovery
+      • Reduced latency
+    end note
+}
+
+CLUSTER "Asia Pacific Region (Future)" as apac {
+    NODE "APAC Services\n(planned)" as apacservices
+    NODE "APAC Database\n(planned)" as apacdb
+}
+
+CLUSTER "Monitoring & Observability" as monitoring {
+    NODE "Prometheus\n(Metrics)" as prometheus
+    NODE "Grafana\n(Dashboards)" as grafana
+    NODE "ELK Stack\n(Logging)" as elk
+    NODE "Jaeger\n(Tracing)" as jaeger
+}
+
+CLUSTER "CI/CD Pipeline" as cicd {
+    NODE "GitHub Actions\n(CI)" as github
+    NODE "ArgoCD\n(CD)" as argocd
+    NODE "Harbor\n(Container Registry)" as registry
+    NODE "Helm Charts\n(K8s Manifests)" as helm
+}
+
+CLUSTER "External Services" as external {
+    NODE "Email Services\n(SendGrid)" as emailsvc
+    NODE "SMS Services\n(Twilio)" as sms
+    NODE "Storage\n(S3)" as s3
+    NODE "Secrets\n(AWS Secrets Manager)" as secretsmgr
+}
+
+' Traffic flow
+dns --> cdn
+cdn --> prod
+cdn --> euprod
+
+' Internal connections
+prodcontrol --> prodnodes
+prodweb --> prodapi
+prodapi --> prodservices
+prodservices --> prodml
+
+prodservices --> proddata
+prodapi --> proddata
+
+' Cross-region replication
+proddb -.-> euproddb : "Async Replication"
+prodredis -.-> euprodredis : "Data Sync"
+
+' Monitoring connections
+prod --> monitoring
+euprod --> monitoring
+staging --> monitoring
+
+prometheus --> grafana
+prodservices --> prometheus
+prodservices --> elk
+prodservices --> jaeger
+
+' CI/CD flow
+github --> registry : "Build & Push"
+registry --> argocd : "Deploy"
+argocd --> helm : "Apply"
+helm --> prod : "Update"
+helm --> staging : "Deploy"
+
+' External service connections
+prodservices --> emailsvc
+prodservices --> sms
+prodservices --> s3
+prodservices --> secretsmgr
+
+note top of global
+  **Traffic Distribution:**
+  • Geographic routing
+  • Health-based failover
+  • Weighted routing for blue/green
+  • Edge caching for static assets
+end note
+
+note right of prod
+  **Auto Scaling:**
+  • HPA: CPU/Memory based
+  • VPA: Resource optimization
+  • Custom metrics scaling
+  • Predictive scaling
+end note
+
+note bottom of cicd
+  **Deployment Strategy:**
+  • Blue/Green deployments
+  • Canary releases
+  • Feature flags
+  • Automated rollbacks
+end note
+
+@enduml

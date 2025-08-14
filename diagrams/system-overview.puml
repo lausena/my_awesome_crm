@@ -1,0 +1,137 @@
+@startuml system-overview
+!theme aws-orange
+title My Awesome CRM - System Overview
+
+!define RECTANGLE class
+
+' External Actors
+actor "Sales Rep" as sales
+actor "Sales Manager" as manager
+actor "Customer Success" as cs
+actor "IT Admin" as admin
+
+' External Systems
+cloud "Email Services" as email {
+    component "Gmail" as gmail
+    component "Outlook" as outlook
+}
+
+cloud "Communication" as comm {
+    component "Slack" as slack
+    component "Teams" as teams
+    component "Zoom" as zoom
+}
+
+cloud "Marketing Automation" as marketing {
+    component "HubSpot" as hubspot
+    component "Marketo" as marketo
+    component "Pardot" as pardot
+}
+
+' Main System
+rectangle "My Awesome CRM" as crm {
+    
+    ' Presentation Layer
+    rectangle "Presentation Layer" as presentation {
+        component "Web App\n(React 18+)" as webapp
+        component "Mobile App\n(React Native)" as mobile
+        component "API Gateway\n(Kong)" as gateway
+    }
+    
+    ' Core Services
+    rectangle "Core Services" as core {
+        component "Contact Service" as contact
+        component "Lead Service" as lead
+        component "Opportunity Service" as opportunity
+        component "Activity Service" as activity
+        component "Communication Service" as communication
+        component "Analytics Service" as analytics
+        component "AI/ML Service" as ai
+    }
+    
+    ' Infrastructure Services
+    rectangle "Infrastructure Services" as infra {
+        component "User Management" as user
+        component "Notification Service" as notification
+        component "Integration Service" as integration
+        component "File Storage" as files
+        component "Audit Service" as audit
+    }
+    
+    ' Data Layer
+    rectangle "Data Layer" as data {
+        database "PostgreSQL\n(Primary DB)" as postgres
+        database "Redis\n(Cache)" as redis
+        database "Elasticsearch\n(Search)" as elastic
+        queue "Message Queue\n(RabbitMQ)" as queue
+    }
+}
+
+' User Connections
+sales --> webapp
+sales --> mobile
+manager --> webapp
+cs --> webapp
+admin --> webapp
+
+' External System Connections
+gmail <--> gateway : "Email Sync"
+outlook <--> gateway : "Email Sync"
+slack <--> gateway : "Notifications"
+teams <--> gateway : "Notifications"
+zoom <--> gateway : "Meeting Integration"
+hubspot <--> gateway : "Lead Data"
+marketo <--> gateway : "Campaign Data"
+pardot <--> gateway : "Marketing Data"
+
+' Internal Connections
+webapp --> gateway
+mobile --> gateway
+gateway --> contact
+gateway --> lead
+gateway --> opportunity
+gateway --> activity
+gateway --> communication
+gateway --> analytics
+gateway --> ai
+
+gateway --> user
+gateway --> notification
+gateway --> integration
+gateway --> files
+gateway --> audit
+
+' Data Connections
+contact --> postgres
+lead --> postgres
+opportunity --> postgres
+activity --> postgres
+communication --> postgres
+user --> postgres
+
+contact --> redis
+lead --> redis
+opportunity --> redis
+
+analytics --> elastic
+communication --> elastic
+
+contact --> queue
+lead --> queue
+opportunity --> queue
+activity --> queue
+ai --> queue
+
+communication --> files
+
+note right of crm
+  **Key Architecture Features:**
+  • Multi-tenant SaaS architecture
+  • Microservices with event-driven communication
+  • Auto-scaling Kubernetes deployment
+  • Real-time AI/ML processing
+  • 99.9% uptime SLA
+  • <2s page load times
+end note
+
+@enduml
